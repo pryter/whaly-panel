@@ -1,0 +1,35 @@
+{
+  "name": "whaly-panel",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@heroui/button": "^2.2.27",
+    "@heroui/modal": "^2.2.24",
+    "@heroui/react": "^2.8.5",
+    "@heroui/system": "^2.4.23",
+    "@heroui/theme": "^2.4.23",
+    "discord.js": "^14.9.0",
+    "dotenv": "^16.0.3",
+    "erela.js": "Tomato6966/erela.js",
+    "framer-motion": "^12.23.24",
+    "next": "16.0.0",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  },
+  "devDependencies": {
+    "typescript": "^5",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@tailwindcss/postcss": "^4",
+    "tailwindcss": "^4",
+    "eslint": "^9",
+    "eslint-config-next": "16.0.0"
+  }
+}
