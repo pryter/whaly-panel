@@ -25,7 +25,7 @@ const Page = ({
 
   useEffect(() => {
     try {
-      const ws = new WebSocket(`ws://localhost:3001?gid=${id}`);
+      const ws = new WebSocket(`wss://whaly.pryter.me/ws?gid=${id}`);
       ws.onerror = () => {
         setStatus("error")
       }
