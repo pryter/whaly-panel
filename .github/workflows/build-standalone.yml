@@ -29,8 +29,8 @@ jobs:
 
       - name: Zip standalone folder
         run: |
-          cd .next/standalone
-          zip -r ../../standalone.zip .
+          cd .next
+          zip -r standalone.zip standalone
 
       - name: Upload Artifact (downloadable build)
         uses: actions/upload-artifact@v4
