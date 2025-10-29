@@ -1,0 +1,39 @@
+name: Build Standalone App
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Next.js (Standalone Output)
+        run: npm run build
+
+      - name: Copy static files to standalone build
+        run: |
+          cp -r .next/static .next/standalone/.next/static
+
+      - name: Zip standalone folder
+        run: |
+          cd .next/standalone
+          zip -r ../../standalone.zip .
+
+      - name: Upload Artifact (downloadable build)
+        uses: actions/upload-artifact@v4
+        with:
+          name: standalone-build
+          path: standalone.zip
