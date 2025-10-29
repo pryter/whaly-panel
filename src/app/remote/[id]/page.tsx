@@ -177,11 +177,11 @@ const Page = ({
           </Button>
         </div>
       </div>
-      <div className="flex flex-col gap-2 mt-4 mx-auto">
+      <div className="flex flex-col gap-2 mt-4 w-full px-2">
         <h1 className="text-white font-bold">Your Queue</h1>
-        {queue?.map((item, index) => (
+        {queue && queue?.length > 0 ? queue?.map((item, index) => (
           <QueueCard key={`${index}-q`} track={item as Track}/>
-        ))}
+        )) : <h1 className="text-white">Currently no queue</h1>}
       </div>
     </div>
   </div>

@@ -176,7 +176,7 @@ export function PlayingCardSkeleton() {
   return (
     <Card
       isBlurred
-      className="border-none bg-background/60 dark:bg-default-100/50 w-[536px]"
+      className="border-none bg-background/60 dark:bg-default-100/50 md:w-[536px]"
       shadow="sm"
     >
       <CardBody>
@@ -281,7 +281,7 @@ export function PlayingCard({track, pos, gid, isPlaying}: {track: Track, pos: nu
   return (
     <Card
       isBlurred
-      className="border-none bg-background/60 dark:bg-default-100/50 w-[536px]"
+      className="border-none bg-background/60 dark:bg-default-100/50 md:w-[536px]"
       shadow="sm"
     >
       <CardBody>

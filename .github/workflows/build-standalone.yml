@@ -28,7 +28,7 @@ jobs:
 
       - name: Copy static files to standalone build
         run: |
-          cp -r .next/static .next/standalone/.next/static
+          cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/
 
       - name: Zip standalone folder
         run: |
