@@ -1,8 +1,8 @@
 name: Build Standalone App
 
 on:
-  push:
-    branches: ["main"]
+  release:
+    types: [published]   # runs when a release is created/published
 
 jobs:
   build:
@@ -30,10 +30,14 @@ jobs:
       - name: Zip standalone folder
         run: |
           cd .next
-          zip -r standalone.zip standalone
+          zip -r ../standalone.zip standalone
 
-      - name: Upload Artifact (downloadable build)
-        uses: actions/upload-artifact@v4
+      - name: Upload asset to release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: standalone-build
-          path: .next/standalone.zip
+          upload_url: ${{ github.event.release.upload_url }}
+          asset_path: standalone.zip
+          asset_name: standalone.zip
+          asset_content_type: application/zip
