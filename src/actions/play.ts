@@ -3,7 +3,11 @@
 
 export async function play(query: string, guildId: string) {
   if (!query || !guildId) return;
-  const r = await fetch(`http://localhost:3223/play/${guildId}/${query}`, { method: "POST"})
+  const r = await fetch(`http://localhost:3223/play/${guildId}`, { method: "POST", headers: {      'Accept': 'application/json',
+      'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      query: query,
+    })})
   if (r.status === 200) {
     const data = await r.json()
     return {status: 200, data: data.data}

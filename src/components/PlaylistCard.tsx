@@ -1,10 +1,13 @@
 //@ts-nocheck
 import React, {useMemo} from "react";
-import {Card, CardBody, Image, Button, Slider} from "@heroui/react";
+import {Card, CardBody, Button, Slider} from "@heroui/react";
 import {Track} from "erela.js";
 import {formatTime} from "@/src/lib/time"
 import {sendToPlayer} from "@/src/actions/play";
-
+import Image from "next/image"
+import {Chip} from "@heroui/chip";
+import {IconlyUser, IconlyTimeCircle, IconlyArrowUp2} from "@/src/components/Icons";
+import {motion} from "framer-motion"
 export const HeartIcon = ({
                             size = 24,
                             width,
@@ -180,23 +183,24 @@ export function PlayingCardSkeleton() {
       shadow="sm"
     >
       <CardBody>
-        <div className="grid grid-cols-6 md:grid-cols-12 gap-6 md:gap-4 items-center justify-center">
-          <div className="relative col-span-6 md:col-span-4">
+        <div className="flex md:flex-row flex-col items-center space-y-4 md:space-y-0 md:space-x-4 md:justify-start justify-center">
+          <div className="relative md:w-[160px] w-full h-[180px] md:h-[160px] rounded-2xl overflow-clip shrink-0">
             <Image
               alt="Album cover"
-              className="object-cover"
-              height={160}
-              shadow="md"
+              objectFit={"cover"}
+              fill={true}
               src={"/whaly.jpeg"}
-              width="100%"
             />
           </div>
 
-          <div className="flex flex-col col-span-6 md:col-span-8">
+          <div className="flex flex-col col-span-6 md:col-span-8 w-full px-2">
             <div className="flex justify-between items-start">
               <div className="flex flex-col gap-0">
                 <h1 className="text-large font-medium h-[26px]  overflow-clip">The player is playing nothing</h1>
-                <h1 className="text-md text-gray-800">Duration: forever</h1>
+                <div className="flex flex-row text-gray-900 space-x-1 items-center">
+                  <IconlyTimeCircle size={20}/>
+                  <h1 className="text-md">-.--</h1>
+                </div>
               </div>
             </div>
 
@@ -271,37 +275,168 @@ export function PlayingCardSkeleton() {
 }
 
 
-export function PlayingCard({track, pos, gid, isPlaying}: {track: Track, pos: number, gid: string, isPlaying: boolean, repeat: "queue" | "track" | "none"}) {
+export function PlayingCard({track, pos, gid, isPlaying, isDisabled = false}: {track: Track | undefined, pos: number, gid: string, isPlaying: boolean, repeat: "queue" | "track" | "none", isDisabled?: boolean}) {
   const [liked, setLiked] = React.useState(false);
-
+  const [isHiding, setIsHiding] = React.useState(true);
   const percen = useMemo(() => {
+    if (!track) return 0
     return pos / track.duration * 100
-  }, [track.duration, pos])
+  }, [track?.duration, pos])
+
+  if (!track) {
+    return (
+      <Card
+        isBlurred
+        className="border-none bg-background/60 dark:bg-default-100/50 md:w-[536px]"
+        shadow="sm"
+        classNames={{body: "pt-0"}}
+      >
+        <CardBody>
+          <motion.div animate={{rotate: isHiding ? 0 : 180}} onClick={() => {setIsHiding(prev => (!prev))}} className="w-full  flex cursor-pointer justify-center items-center">
+            <IconlyArrowUp2 size={20}/>
+          </motion.div>
+          <div className="flex flex-row items-start space-x-2 justify-start">
+            <div className="relative w-[80px] h-[80px] rounded-2xl overflow-clip shrink-0">
+              <Image
+                alt="Album cover"
+                objectFit={"cover"}
+                fill={true}
+                src={"/whaly.jpeg"}
+              />
+            </div>
+
+            <motion.div className="flex flex-col w-full px-2">
+              <div className="flex justify-between items-start">
+                <div className="flex flex-col gap-0">
+                  <h1 className="text-md font-medium h-[26px] inline overflow-clip">There is nothing playing</h1>
+                  <div className="flex flex-row space-x-4 text-sm">
+                    <div className="flex flex-row text-gray-900 space-x-1 items-center">
+                      <IconlyTimeCircle size={16}/>
+                      <h1 className="text-sm">-.--</h1>
+                    </div>
+                    <div className="flex flex-row text-gray-900 space-x-1 items-center">
+                      <IconlyUser size={16}/>
+                      <h1 className="text-sm"></h1>
+                    </div>
+                  </div>
+                </div>
+                <Button
+                  isIconOnly
+                  className="text-default-900/60 data-hover:bg-foreground/10! -translate-y-2 translate-x-2"
+                  radius="full"
+                  variant="light"
+                  onPress={() => setLiked((v) => !v)}
+                >
+                  <HeartIcon
+                    className={liked ? "[&>path]:stroke-transparent" : ""}
+                    fill={liked ? "currentColor" : "none"}
+                    size={16}
+                  />
+                </Button>
+              </div>
+
+              <div className="flex flex-col mt-1">
+                <Slider
+                  aria-label="Music progress"
+                  classNames={{
+                    track: "bg-default-500/30",
+                    thumb: "w-2 h-2 after:w-2 after:h-2 after:bg-foreground",
+                  }}
+                  value={0}
+                  color="foreground"
+                  size="sm"
+                />
+                <div className="flex justify-between -mt-1">
+                  <p className="text-small">-.--</p>
+                  <p className="text-small text-foreground/50">-.--</p>
+                </div>
+              </div>
+
+            </motion.div>
+
+          </div>
+          <motion.div initial={{height: 0}} animate={{height: isHiding ? 0 : 50, opacity: isHiding ? 0 : 0.5}} className="flex w-full items-center justify-center overflow-clip">
+            <Button
+              isIconOnly
+              className="data-hover:bg-foreground/10!"
+              radius="full"
+              variant="light"
+            >
+              <RepeatOneIcon className="text-foreground/80" />
+            </Button>
+            <Button
+              isIconOnly
+              className="data-hover:bg-foreground/10!"
+              radius="full"
+              variant="light"
+            >
+              <PreviousIcon />
+            </Button>
+            <Button
+              isIconOnly
+              className="w-auto h-auto data-hover:bg-foreground/10!"
+              radius="full"
+              variant="light"
+            >
+              {isPlaying ? <PauseCircleIcon size={54} /> : <PlayCircleIcon size={54} />}
+            </Button>
+            <Button
+              isIconOnly
+              className="data-hover:bg-foreground/10!"
+              radius="full"
+              variant="light"
+            >
+              <NextIcon />
+            </Button>
+            <Button
+              isIconOnly
+              className="data-hover:bg-foreground/10!"
+              radius="full"
+              variant="light"
+            >
+              <ShuffleIcon className="text-foreground/80" />
+            </Button>
+          </motion.div>
+        </CardBody>
+      </Card>
+    );
+  }
 
   return (
     <Card
       isBlurred
-      className="border-none bg-background/60 dark:bg-default-100/50 md:w-[536px]"
+      className="border-none bg-background/50 backdrop-blur-[6px] grow w-full max-w-[536px]"
       shadow="sm"
+      classNames={{body: "pt-0"}}
     >
       <CardBody>
-        <div className="grid grid-cols-6 md:grid-cols-12 gap-6 md:gap-4 items-center justify-center">
-          <div className="relative col-span-6 md:col-span-4">
+        <motion.div animate={{rotate: isHiding ? 0 : 180}} onClick={() => {setIsHiding(prev => (!prev))}} className="w-full  flex cursor-pointer justify-center items-center">
+          <IconlyArrowUp2 size={20}/>
+        </motion.div>
+        <div className="flex flex-row items-start space-x-2 justify-start">
+          <div className="xs:block hidden relative w-[80px] h-[80px] rounded-2xl overflow-clip shrink-0">
             <Image
               alt="Album cover"
-              className="object-cover"
-              height={160}
-              shadow="md"
+              objectFit={"cover"}
+              fill={true}
               src={track.artworkUrl}
-              width="100%"
             />
           </div>
 
-          <div className="flex flex-col col-span-6 md:col-span-8">
+          <motion.div className="flex flex-col w-full px-2">
             <div className="flex justify-between items-start">
               <div className="flex flex-col gap-0">
-                <h1 className="text-large font-medium h-[26px]  overflow-clip">{track.title}</h1>
-                <h1 className="text-md text-gray-800">Duration: {formatTime(track.duration)}</h1>
+                <h1 className="text-md font-medium h-[26px] inline overflow-clip">{track.title}</h1>
+                <div className="flex flex-row space-x-4 text-sm">
+                  <div className="flex flex-row text-gray-900 space-x-1 items-center">
+                    <IconlyTimeCircle size={16}/>
+                    <h1 className="text-sm">{formatTime(track.duration)}</h1>
+                  </div>
+                  <div className="flex flex-row text-gray-900 space-x-1 items-center">
+                    <IconlyUser size={16}/>
+                    <h1 className="text-sm">{track.requester.globalName ? track.requester.globalName : "remote"}</h1>
+                  </div>
+                </div>
               </div>
               <Button
                 isIconOnly
@@ -313,11 +448,12 @@ export function PlayingCard({track, pos, gid, isPlaying}: {track: Track, pos: nu
                 <HeartIcon
                   className={liked ? "[&>path]:stroke-transparent" : ""}
                   fill={liked ? "currentColor" : "none"}
+                  size={16}
                 />
               </Button>
             </div>
 
-            <div className="flex flex-col mt-3 gap-1">
+            <div className="flex flex-col mt-1">
               <Slider
                 aria-label="Music progress"
                 classNames={{
@@ -328,101 +464,137 @@ export function PlayingCard({track, pos, gid, isPlaying}: {track: Track, pos: nu
                 color="foreground"
                 size="sm"
               />
-              <div className="flex justify-between">
+              <div className="flex justify-between -mt-1">
                 <p className="text-small">{formatTime(pos)}</p>
                 <p className="text-small text-foreground/50">{formatTime(track.duration)}</p>
               </div>
             </div>
 
-            <div className="flex w-full items-center justify-center">
-              <Button
-                isIconOnly
-                className="data-hover:bg-foreground/10!"
-                radius="full"
-                variant="light"
-              >
-                <RepeatOneIcon className="text-foreground/80" />
-              </Button>
-              <Button
-                isIconOnly
-                className="data-hover:bg-foreground/10!"
-                radius="full"
-                variant="light"
-                onPress={() => {
-                  sendToPlayer("prev", gid)
-                }}
-              >
-                <PreviousIcon />
-              </Button>
-              <Button
-                isIconOnly
-                className="w-auto h-auto data-hover:bg-foreground/10!"
-                radius="full"
-                variant="light"
-                onPress={() => {
-                  sendToPlayer("playPause", gid)
-                }}
-              >
-                {isPlaying ? <PauseCircleIcon size={54} /> : <PlayCircleIcon size={54} />}
-              </Button>
-              <Button
-                isIconOnly
-                className="data-hover:bg-foreground/10!"
-                radius="full"
-                variant="light"
-                onPress={() => {
-                  sendToPlayer("next", gid)
-                }}
-              >
-                <NextIcon />
-              </Button>
-              <Button
-                isIconOnly
-                className="data-hover:bg-foreground/10!"
-                radius="full"
-                variant="light"
-              >
-                <ShuffleIcon className="text-foreground/80" />
-              </Button>
-            </div>
-          </div>
+          </motion.div>
+
         </div>
+        <motion.div initial={{height: 0}} animate={{height: isHiding ? 0 : 50, opacity: isHiding ? 0 : 1}} className="flex w-full items-center justify-center overflow-clip">
+          <Button
+            isIconOnly
+            className="data-hover:bg-foreground/10!"
+            radius="full"
+            variant="light"
+          >
+            <RepeatOneIcon className="text-foreground/80" />
+          </Button>
+          <Button
+            isIconOnly
+            className="data-hover:bg-foreground/10!"
+            radius="full"
+            variant="light"
+            onPress={() => {
+              sendToPlayer("prev", gid)
+            }}
+          >
+            <PreviousIcon />
+          </Button>
+          <Button
+            isIconOnly
+            className="w-auto h-auto data-hover:bg-foreground/10!"
+            radius="full"
+            variant="light"
+            onPress={() => {
+              sendToPlayer("playPause", gid)
+            }}
+          >
+            {isPlaying ? <PauseCircleIcon size={54} /> : <PlayCircleIcon size={54} />}
+          </Button>
+          <Button
+            isIconOnly
+            className="data-hover:bg-foreground/10!"
+            radius="full"
+            variant="light"
+            onPress={() => {
+              sendToPlayer("next", gid)
+            }}
+          >
+            <NextIcon />
+          </Button>
+          <Button
+            isIconOnly
+            className="data-hover:bg-foreground/10!"
+            radius="full"
+            variant="light"
+          >
+            <ShuffleIcon className="text-foreground/80" />
+          </Button>
+        </motion.div>
       </CardBody>
     </Card>
   );
 }
 
 
-export function QueueCard({track}: {track: Track}) {
+const genSourceIcon = (name: string) => {
+if (name === "spotify") {
+  return <svg xmlns="http://www.w3.org/2000/svg" className="w-full h-full" viewBox="0 0 496 512">
+    <path fill="#1ed760" d="M248 8C111.1 8 0 119.1 0 256s111.1 248 248 248 248-111.1 248-248S384.9 8 248 8Z"/>
+    <path d="M406.6 231.1c-5.2 0-8.4-1.3-12.9-3.9-71.2-42.5-198.5-52.7-280.9-29.7-3.6 1-8.1 2.6-12.9 2.6-13.2 0-23.3-10.3-23.3-23.6 0-13.6 8.4-21.3 17.4-23.9 35.2-10.3 74.6-15.2 117.5-15.2 73 0 149.5 15.2 205.4 47.8 7.8 4.5 12.9 10.7 12.9 22.6 0 13.6-11 23.3-23.2 23.3zm-31 76.2c-5.2 0-8.7-2.3-12.3-4.2-62.5-37-155.7-51.9-238.6-29.4-4.8 1.3-7.4 2.6-11.9 2.6-10.7 0-19.4-8.7-19.4-19.4s5.2-17.8 15.5-20.7c27.8-7.8 56.2-13.6 97.8-13.6 64.9 0 127.6 16.1 177 45.5 8.1 4.8 11.3 11 11.3 19.7-.1 10.8-8.5 19.5-19.4 19.5zm-26.9 65.6c-4.2 0-6.8-1.3-10.7-3.6-62.4-37.6-135-39.2-206.7-24.5-3.9 1-9 2.6-11.9 2.6-9.7 0-15.8-7.7-15.8-15.8 0-10.3 6.1-15.2 13.6-16.8 81.9-18.1 165.6-16.5 237 26.2 6.1 3.9 9.7 7.4 9.7 16.5s-7.1 15.4-15.2 15.4z"/>
+  </svg>
+}
+
+if (name === "youtube") {
+  return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28.57  20" focusable="false" className="w-full h-full">
+    <svg viewBox="0 0 28.57 20" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+      <g>
+        <path
+          d="M27.9727 3.12324C27.6435 1.89323 26.6768 0.926623 25.4468 0.597366C23.2197 2.24288e-07 14.285 0 14.285 0C14.285 0 5.35042 2.24288e-07 3.12323 0.597366C1.89323 0.926623 0.926623 1.89323 0.597366 3.12324C2.24288e-07 5.35042 0 10 0 10C0 10 2.24288e-07 14.6496 0.597366 16.8768C0.926623 18.1068 1.89323 19.0734 3.12323 19.4026C5.35042 20 14.285 20 14.285 20C14.285 20 23.2197 20 25.4468 19.4026C26.6768 19.0734 27.6435 18.1068 27.9727 16.8768C28.5701 14.6496 28.5701 10 28.5701 10C28.5701 10 28.5677 5.35042 27.9727 3.12324Z"
+          fill="#FF0000"></path>
+        <path d="M11.4253 14.2854L18.8477 10.0004L11.4253 5.71533V14.2854Z" fill="white"></path>
+      </g>
+    </svg>
+  </svg>
+}
+}
+export function QueueCard({track, moreDetail = false}: { track: Track, moreDetail?: boolean }) {
   const [liked, setLiked] = React.useState(false);
   return (
     <Card
       isBlurred
-      className="border-none bg-background/60 dark:bg-default-100/50 max-w-[510px]"
+      className="border-none bg-gray-900 text-white w-full shadow-lg shadow-white/20"
       shadow="sm"
     >
-      <CardBody>
-        <div className="grid grid-cols-6 md:grid-cols-12 gap-6 md:gap-4 items-center justify-center">
-          <div className="relative col-span-6 md:col-span-4">
+      <CardBody className="p-0">
+        <div className="flex space-x-3 items-start py-2 px-4 xs:p-2">
+          <div className="hidden xs:block relative border-2 border-white shrink-0 w-[80px] h-[80px] overflow-clip rounded-lg">
             <Image
-              alt="Album cover"
+              alt="cover"
               className="object-cover"
-              height={90}
-              shadow="md"
+              fill={true}
               src={track.artworkUrl}
-              width="100%"
             />
           </div>
 
-          <div className="flex flex-col col-span-6 md:col-span-8">
-            <div className="flex justify-between items-start">
-              <div className="flex flex-col gap-0">
-                <h1 className="text-large font-medium h-[50px] overflow-clip leading-6">{track.title}</h1>
-                <h1 className="text-md text-gray-800 mt-4">Duration: {formatTime(track.duration)}</h1>
+          <div className="flex flex-col w-full xs:h-[80px] pt-1/2 pb-1">
+            <div className="relative h-full">
+              <div className="flex flex-col justify-start gap-0 h-full">
+                <h1 className="text-md font-medium max-h-[40px] pr-[26px] overflow-clip leading-[22px]">{track.title}</h1>
+                <div className="flex flex-wrap items-center mt-2">
+                  <Chip size={"sm"} className="p-2 mr-3 mt-0.5">
+                    <div className="flex flex-row items-center space-x-1">
+                      <div className="w-4 h-4">{genSourceIcon(track.sourceName)}</div>
+                      <span className="text-xs font-semibold max-w-[100px] overflow-clip">{track.author}</span>
+                    </div>
+                  </Chip>
+                  <div className="flex flex-row items-center space-x-1 mr-3 mt-0.5">
+                    <IconlyTimeCircle size={16} />
+                    <h1 className="text-sm font-semibold text-white">{formatTime(track.duration)}</h1>
+                  </div>
+                  {moreDetail && <div className="flex flex-row items-center space-x-1 mr-3 mt-0.5">
+                    <IconlyUser size={16}/>
+                    <h1
+                      className="text-sm font-semibold text-white">{track.requester.globalName ? track.requester.globalName : "remote"}</h1>
+                  </div>}
+                </div>
               </div>
               <Button
                 isIconOnly
-                className="text-default-900/60 data-hover:bg-foreground/10! -translate-y-2 translate-x-2"
+                    className="text-white -translate-y-2 translate-x-2 absolute top-0 right-0"
                 radius="full"
                 variant="light"
                 onPress={() => setLiked((v) => !v)}

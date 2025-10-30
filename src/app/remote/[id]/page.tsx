@@ -1,6 +1,6 @@
 "use client"
 import {use, useEffect, useState} from "react";
-import {Queue, Track} from "erela.js";
+import {PlaylistInfo, Queue, Track} from "erela.js";
 import React from "react";
 import {play} from "@/src/actions/play";
 import {useDisclosure} from "@heroui/use-disclosure";
@@ -11,6 +11,7 @@ import {Input} from "@heroui/input";
 import { motion } from "framer-motion";
 import {confirm} from "@/src/actions/confirm";
 import {Spinner} from "@heroui/react";
+import Image from "next/image";
 
 const Page = ({
                 params,
@@ -20,7 +21,7 @@ const Page = ({
 
   const {isOpen, onOpen, onOpenChange, onClose} = useDisclosure();
   const option = useDisclosure({id: "options"});
-  const [sr, setSr] = useState<{options: Track[], sessionId: string}>()
+  const [sr, setSr] = useState<{options: Track[], sessionId: string, type: string, playlist_info: PlaylistInfo | undefined}>()
   const [isSearch, setIsSearch] = useState(false)
   const [initialPos, setInitialPos] = useState<number>(0)
   const [countingPos, setCountingPos] = useState<number>(0)
@@ -35,8 +36,8 @@ const Page = ({
 
   const connect = () => {
     try {
-      // const ws = new WebSocket(`ws://localhost:3001?gid=${id}`);
-      const ws = new WebSocket(`wss://whaly.pryter.me/ws?gid=${id}`);
+      const ws = new WebSocket(`ws://localhost:3001?gid=${id}`);
+      // const ws = new WebSocket(`wss://whaly.pryter.me/ws?gid=${id}`);
       ws.onerror = () => {
         setStatus("error")
       }
@@ -105,8 +106,8 @@ const Page = ({
 
   useEffect(() => {
     clearInterval(counter)
-    if (!isPlaying) return
     setCountingPos(initialPos)
+    if (!isPlaying) return
     const i = setInterval(() => {
       setCountingPos(prev => prev + 1*1000)
     }, 1000)
@@ -137,25 +138,43 @@ const Page = ({
         )}
       </ModalContent>
     </Modal>
-    <Modal isOpen={option.isOpen} onOpenChange={option.onOpenChange} className="bg-white/80 backdrop-blur-[4px]">
+    <Modal isOpen={option.isOpen} classNames={{body: "px-3", header: "px-4"}} onOpenChange={option.onOpenChange} className="bg-gray-400/30 backdrop-blur-[4px] md:max-w-[480px]">
       <ModalContent>
         {(onClose) => (
           <>
-            <ModalHeader className="flex flex-col gap-1 text-xl font-bold">Search Result</ModalHeader>
+            <ModalHeader className="flex flex-col gap-1 text-xl text-white font-bold">Search Result</ModalHeader>
             <ModalBody>
-              <p>
-                Select one from the search result.
-              </p>
-              <div className="max-h-[500px] overflow-y-scroll flex flex-col space-y-2 p-2">
+              {sr?.type !== "playlist" && <p className="px-1 text-white font-medium">
+                  Select one from the search result.
+              </p>}
+              {sr?.type === "playlist" ? <div>
+                <div className="flex flex-row items-start justify-between space-x-4 mb-2">
+                 <div className="flex flex-row items-center space-x-4">
+                   <Image src={sr?.playlist_info?.thumbnail ?? "/whaly.jpeg"} alt={"thumbnail"} width={44} height={44} className="rounded-2xl"/>
+                   <div className="flex flex-col">
+                     <h1 className="text-white text-lg font-semibold">{sr?.playlist_info?.name}</h1>
+                     <p className="text-sm -mt-1 text-white">{sr?.playlist_info?.author}</p>
+                   </div>
+                 </div>
+                  <Button onPress={() => {confirmSr(sr?.sessionId)}} variant="shadow" color="danger" className="cursor-pointer">Add to Queue</Button>
+                </div>
+                <div className="max-h-[320px] overflow-y-scroll border-white border-2 rounded-2xl flex flex-col space-y-2 px-1 py-2">
+                  {sr?.options?.map((item, index) => (
+                    <motion.div key={`option-${index}`} whileHover={{scale: 1.01}} className="shrink-0 cursor-pointer">
+                      <QueueCard track={item}/>
+                    </motion.div>
+                  ))}
+                </div>
+              </div> : <div className="max-h-[500px] overflow-y-scroll flex flex-col space-y-2 px-1 py-2">
                 {sr?.options?.map((item, index) => (
                   <motion.div key={`option-${index}`} onClick={() => {confirmSr(item.identifier)}} whileHover={{scale: 1.01}} className="shrink-0 cursor-pointer">
                     <QueueCard track={item}/>
                   </motion.div>
                 ))}
-              </div>
+              </div>}
             </ModalBody>
             <ModalFooter>
-              <Button onPress={() => {option.onClose();setQuery("")}} color="danger" variant="light">
+              <Button onPress={() => {option.onClose();setQuery("")}} color="danger" variant="shadow" className="w-full">
                 Cancel
               </Button>
             </ModalFooter>
@@ -163,13 +182,14 @@ const Page = ({
         )}
       </ModalContent>
     </Modal>
-    <div className="flex flex-col items-start space-y-2">
-      <div className="">
-        <h1 className="text-xl text-white font-black mb-2">Now Playing</h1>
-        {current ? <PlayingCard track={current} pos={countingPos} gid={id} isPlaying={isPlaying} repeat={"none"}/> : <PlayingCardSkeleton/>}
+    <div className="fixed bottom-2 z-10 shadow-lg w-full px-4">
+      <PlayingCard track={current} pos={countingPos} gid={id} isPlaying={isPlaying} repeat={"none"}/>
+    </div>
+    <div className="flex flex-col items-center space-y-2 w-full max-w-md ">
+      <div className="w-full px-1">
         <div className="grow mt-4 flex flex-row items-center gap-2">
           <Input disabled={isSearch} value={query} onChange={(e) => {setQuery(e.target.value)}} classNames={{input: "text-lg px-2 text-white", inputWrapper: "h-[44px] opacity-70 backdrop-blur-xl"}} placeholder="Enter you query" type="text" />
-          <Button disabled={isSearch} onPress={() => {submit()}} color="primary" className="font-semibold w-[100px] h-[44px]">
+          <Button disabled={isSearch} onPress={() => {submit()}} color="primary" variant="shadow" className="font-semibold w-[100px] h-[44px]">
             {
               !isSearch ? <span>Submit</span> :
               <Spinner color="white" size={"sm"}/>
@@ -177,10 +197,15 @@ const Page = ({
           </Button>
         </div>
       </div>
-      <div className="flex flex-col gap-2 mt-4 w-full px-2">
+      <div className="flex flex-row items-end justify-between w-full px-2 mt-4">
         <h1 className="text-white font-bold">Your Queue</h1>
+        <h2 className="text-white text-sm font-semibold">{queue?.length} songs</h2>
+      </div>
+      <div className="flex flex-col gap-2 w-full px-2 overflow-auto max-h-[400px]">
         {queue && queue?.length > 0 ? queue?.map((item, index) => (
-          <QueueCard key={`${index}-q`} track={item as Track}/>
+          <div key={`${index}-q`}>
+            <QueueCard moreDetail={true} track={item as Track}/>
+          </div>
         )) : <h1 className="text-white">Currently no queue</h1>}
       </div>
     </div>

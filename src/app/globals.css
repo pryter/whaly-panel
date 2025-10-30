@@ -10,6 +10,8 @@
   --foreground: #171717;
 }
 
+@theme {  --breakpoint-xs: 374px; }
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
