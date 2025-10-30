@@ -36,8 +36,11 @@ const Page = ({
 
   const connect = () => {
     try {
-      const ws = new WebSocket(`ws://localhost:3001?gid=${id}`);
-      // const ws = new WebSocket(`wss://whaly.pryter.me/ws?gid=${id}`);
+      const wsUrl =
+        window.location.hostname === "localhost"
+          ? `ws://localhost:3001?gid=${id}`
+          : `wss://whaly.pryter.me/ws?gid=${id}`;
+      const ws = new WebSocket(wsUrl);
       ws.onerror = () => {
         setStatus("error")
       }
@@ -182,7 +185,7 @@ const Page = ({
         )}
       </ModalContent>
     </Modal>
-    <div className="fixed bottom-2 z-10 shadow-lg w-full px-4">
+    <div className="fixed bottom-2 z-10 shadow-lg w-full flex justify-center px-4">
       <PlayingCard track={current} pos={countingPos} gid={id} isPlaying={isPlaying} repeat={"none"}/>
     </div>
     <div className="flex flex-col items-center space-y-2 w-full max-w-md ">
