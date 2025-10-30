@@ -179,7 +179,7 @@ export function PlayingCardSkeleton() {
   return (
     <Card
       isBlurred
-      className="border-none bg-background/60 dark:bg-default-100/50 md:w-[536px]"
+      className="border-none bg-background/50 backdrop-blur-[6px] grow w-full max-w-[536px]"
       shadow="sm"
     >
       <CardBody>
