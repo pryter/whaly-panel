@@ -70,6 +70,7 @@ const Page = ({
   }, []);
 
   useEffect(() => {
+    console.log(status)
     if (status !== "connected") {
       onOpen()
     }else{
