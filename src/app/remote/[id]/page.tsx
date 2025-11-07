@@ -37,9 +37,9 @@ const Page = ({
   const connect = () => {
     try {
       const wsUrl =
-        window.location.hostname === "localhost"
-          ? `ws://localhost:3001?gid=${id}`
-          : `wss://whaly.pryter.me/ws?gid=${id}`;
+        window.location.hostname !== "localhost"
+          ? `ws://localhost:3223?gid=${id}`
+          : `wss://api.whaly.pryter.me/ws?gid=${id}`;
       const ws = new WebSocket(wsUrl);
       ws.onerror = () => {
         setStatus("error")
@@ -66,8 +66,10 @@ const Page = ({
     }
   }
   useEffect(() => {
-    connect()
-  }, []);
+    if (id) {
+      connect()
+    }
+  }, [id]);
 
   useEffect(() => {
     console.log(status)
