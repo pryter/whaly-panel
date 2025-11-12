@@ -37,7 +37,7 @@ const Page = ({
   const connect = () => {
     try {
       const wsUrl =
-        window.location.hostname !== "localhost"
+        window.location.hostname === "localhost"
           ? `ws://localhost:3223?gid=${id}`
           : `wss://api.whaly.pryter.me/ws?gid=${id}`;
       const ws = new WebSocket(wsUrl);
