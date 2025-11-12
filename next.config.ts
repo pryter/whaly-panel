@@ -9,6 +9,8 @@ const nextConfig: NextConfig = {
       hostname: "*", // Allow images from all domains
     },],
   },
+  basePath: '/remote',
+  assetPrefix: '/remote/',
 };
 
 export default nextConfig;
